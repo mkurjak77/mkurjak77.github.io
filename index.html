@@ -15,50 +15,41 @@
       background:var(--bg);
       color:var(--text);
       font-family: 'EB Garamond', serif;
-      font-size: 25px; /* EVEN BIGGER */
-      line-height: 1.7;
+      font-size: 26px; 
+      line-height: 1.8;
+      /* FORCING GAPS AT THE BROWSER LEVEL */
+      word-spacing: 0.15em !important; 
+      letter-spacing: 0.02em !important;
       text-rendering: optimizeLegibility;
-      -webkit-font-smoothing: antialiased;
-      letter-spacing: 0.02em; /* Forces breathing room between letters */
-      word-spacing: 0.1em;   /* Forces breathing room between words */
       min-height:100vh;
     }
 
     body{padding:env(safe-area-inset-top) 20px 0}
     
-    /* This forces a visible gap after every period */
+    /* This makes sure paragraphs don't collapse */
     .chapter-body p {
-        white-space: pre-wrap; 
-        margin-bottom: 2em;
+        display: block;
+        margin-bottom: 2em !important;
+        padding-bottom: 5px;
     }
 
     header{text-align:center;padding:100px 20px 80px;border-bottom:1px solid var(--border)}
     .book-label{font-family:'Tenor Sans',sans-serif;font-size:12px;letter-spacing:0.4em;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
-    h1{font-weight:400;font-size:clamp(40px,9vw,80px);color:var(--text-bright);line-height:1.1;letter-spacing:-0.02em}
+    h1{font-weight:400;font-size:clamp(40px,9vw,80px);color:var(--text-bright);line-height:1.1}
     .subtitle{font-style:italic;font-size:22px;color:var(--text-dim);margin-top:18px}
-    
     .toc-label{font-family:'Tenor Sans',sans-serif;font-size:12px;letter-spacing:0.4em;text-transform:uppercase;color:var(--text-dim);text-align:center;padding:50px 0 25px}
-    
     .chapters{max-width:800px;margin:0 auto;padding-bottom:150px}
     details{border-bottom:1px solid var(--border)}
-    summary{display:flex;align-items:baseline;gap:15px;padding:30px 5px;cursor:pointer;list-style:none;user-select:none}
-    
+    summary{display:flex;align-items:baseline;gap:15px;padding:30px 5px;cursor:pointer;list-style:none}
     .chapter-num{font-family:'Tenor Sans',sans-serif;font-size:14px;color:var(--text-dim);min-width:45px}
-    .chapter-title{font-size:26px;flex:1;transition:color 0.2s}
-    .chapter-arrow{font-size:16px;color:var(--text-dim);transition:transform 0.2s}
-    
+    .chapter-title{font-size:28px;flex:1}
+    .chapter-arrow{font-size:18px;color:var(--text-dim)}
     details[open] summary .chapter-title{color:var(--text-bright)}
     details[open] .chapter-arrow{transform:rotate(90deg);color:var(--accent)}
     .chapter-body{padding:20px 5px 50px 60px;animation:fadeIn 0.3s ease}
-    
     @keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
-    
     footer{text-align:center;padding:80px 40px;font-family:'Tenor Sans',sans-serif;font-size:11px;color:var(--text-dim);border-top:1px solid var(--border)}
-    
-    @media (max-width: 500px) { 
-        .chapter-body { padding-left: 15px; } 
-        body { font-size: 24px; }
-    }
+    @media (max-width: 500px) { .chapter-body { padding-left: 15px; } }
   </style>
 </head>
 <body>
@@ -75,14 +66,12 @@
   <details>
     <summary><span class="chapter-num">I</span><span class="chapter-title">Chapter One</span><span class="chapter-arrow">›</span></summary>
     <div class="chapter-body">
-      <p>This is Chapter One. Notice. The gap. Between the period. And the next letter.</p>
+      <p>This is Chapter One.&nbsp; Notice.&nbsp; The gap.&nbsp; Should be forced.</p>
     </div>
   </details>
-  </main>
+</main>
 
-<footer>
-  &copy; 2026 Your Name · Your Book Title
-</footer>
+<footer>&copy; 2026 Your Name</footer>
 
 </body>
 </html>
