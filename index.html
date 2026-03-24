@@ -10,45 +10,62 @@
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{--bg:#080808;--text:#c8c4bc;--text-dim:#6e6b65;--text-bright:#e8e4dc;--accent:#a08060;--border:#1e1e1c}
-    html,body{background:var(--bg);color:var(--text);font-family:'Cormorant Garamond',serif;font-size:19px;line-height:1.8;min-height:100vh}
+    
+    html,body{
+      background:var(--bg);
+      color:var(--text);
+      font-family:'Cormorant Garamond', serif;
+      /* BIGGER TEXT START */
+      font-size: 22px; 
+      line-height: 1.9;
+      letter-spacing: 0.01em; /* Helps stop letters from touching */
+      word-spacing: 0.05em;   /* Gives the period some room */
+      /* BIGGER TEXT END */
+      min-height:100vh;
+    }
+
     body{padding:env(safe-area-inset-top) 20px 0}
     header{text-align:center;padding:80px 20px 60px;border-bottom:1px solid var(--border)}
-    .book-label{font-family:'Tenor Sans',sans-serif;font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
-    h1{font-weight:300;font-size:clamp(32px,7vw,64px);color:var(--text-bright);line-height:1.1}
-    .subtitle{font-style:italic;font-size:18px;color:var(--text-dim);margin-top:14px}
-    .toc-label{font-family:'Tenor Sans',sans-serif;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--text-dim);text-align:center;padding:40px 0 20px}
-    .chapters{max-width:700px;margin:0 auto;padding-bottom:100px}
+    .book-label{font-family:'Tenor Sans',sans-serif;font-size:11px;letter-spacing:0.35em;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+    h1{font-weight:300;font-size:clamp(36px,8vw,72px);color:var(--text-bright);line-height:1.1}
+    .subtitle{font-style:italic;font-size:20px;color:var(--text-dim);margin-top:14px}
+    .toc-label{font-family:'Tenor Sans',sans-serif;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--text-dim);text-align:center;padding:40px 0 20px}
+    .chapters{max-width:750px;margin:0 auto;padding-bottom:100px}
     details{border-bottom:1px solid var(--border)}
-    summary{display:flex;align-items:baseline;gap:15px;padding:20px 5px;cursor:pointer;list-style:none}
-    .chapter-num{font-family:'Tenor Sans',sans-serif;font-size:11px;color:var(--text-dim);min-width:30px}
-    .chapter-title{font-size:20px;flex:1}
-    .chapter-arrow{font-size:12px;color:var(--text-dim)}
+    summary{display:flex;align-items:baseline;gap:15px;padding:25px 5px;cursor:pointer;list-style:none;user-select:none}
+    .chapter-num{font-family:'Tenor Sans',sans-serif;font-size:12px;color:var(--text-dim);min-width:40px}
+    .chapter-title{font-size:24px;flex:1;transition:color 0.2s}
+    .chapter-arrow{font-size:14px;color:var(--text-dim);transition:transform 0.2s}
     details[open] summary .chapter-title{color:var(--text-bright)}
     details[open] .chapter-arrow{transform:rotate(90deg);color:var(--accent)}
-    .chapter-body{padding:10px 5px 30px 45px;animation:fadeIn 0.3s ease}
-    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-    footer{text-align:center;padding:40px;font-family:'Tenor Sans',sans-serif;font-size:9px;color:var(--text-dim);border-top:1px solid var(--border)}
+    .chapter-body{padding:15px 5px 40px 55px;animation:fadeIn 0.3s ease}
+    .chapter-body p{margin-bottom:1.8em}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+    footer{text-align:center;padding:60px 40px;font-family:'Tenor Sans',sans-serif;font-size:10px;color:var(--text-dim);border-top:1px solid var(--border)}
+    @media (max-width: 500px) { .chapter-body { padding-left: 10px; } }
   </style>
 </head>
 <body>
+
 <header>
   <p class="book-label">A Novel</p>
   <h1>Your Book Title</h1>
   <p class="subtitle">By Your Name</p>
 </header>
+
 <p class="toc-label">Contents</p>
+
 <main class="chapters">
   <details>
-    <summary>
-      <span class="chapter-num">I</span>
-      <span class="chapter-title">Chapter One</span>
-      <span class="chapter-arrow">›</span>
-    </summary>
-    <div class="chapter-body">
-      <p>This is your text. If this shows up on a black background, it's working!</p>
-    </div>
+    <summary><span class="chapter-num">I</span><span class="chapter-title">Chapter One</span><span class="chapter-arrow">›</span></summary>
+    <div class="chapter-body"><p>Paste chapter 1 text here. Notice how the periods have space.</p></div>
   </details>
+  
   </main>
-<footer>&copy; 2026 Your Name</footer>
+
+<footer>
+  &copy; 2026 Your Name · Your Book Title
+</footer>
+
 </body>
 </html>
