@@ -30,7 +30,6 @@
       flex-direction: column;
     }
 
-    /* Top Navigation Bar */
     .top-nav {
       position: fixed;
       top: env(safe-area-inset-top, 10px);
@@ -54,8 +53,8 @@
       background: var(--panel);
       border: 1px solid var(--border);
       color: var(--text);
-      width: 36px;
-      height: 32px;
+      width: 38px;
+      height: 34px;
       border-radius: 4px;
       display: flex;
       align-items: center;
@@ -68,17 +67,15 @@
 
     .nav-btn:active { background: var(--accent); color: white; }
 
-    /* Styled Dropdown Container */
     .selector-wrapper {
       pointer-events: auto;
-      position: relative;
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 4px;
       backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
-      padding: 0 8px;
+      padding: 0 12px;
     }
 
     #page-select {
@@ -86,30 +83,29 @@
       border: none;
       color: var(--accent);
       font-family: 'Tenor Sans', sans-serif;
-      font-size: 10px;
-      letter-spacing: 1px;
-      padding: 8px 4px;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 8px 0;
       cursor: pointer;
-      appearance: none; /* Removes default arrow */
+      appearance: none;
       -webkit-appearance: none;
       outline: none;
-      text-transform: uppercase;
+      text-align: center;
     }
 
-    /* Custom arrow for the dropdown */
+    /* Small dot/arrow indicator */
     .selector-wrapper::after {
-      content: '▼';
-      font-size: 8px;
-      color: var(--text-dim);
-      margin-left: 4px;
-      pointer-events: none;
+      content: '•';
+      font-size: 10px;
+      color: var(--accent);
+      margin-left: 6px;
+      opacity: 0.5;
     }
 
-    /* Main Reader Area */
     #reader-view {
       flex: 1;
       overflow-y: auto;
-      padding: calc(env(safe-area-inset-top) + 70px) 25px 60px;
+      padding: calc(env(safe-area-inset-top) + 75px) 25px 80px;
       display: flex;
       justify-content: center;
       scroll-behavior: smooth;
@@ -122,9 +118,7 @@
     }
 
     p { margin-bottom: 1.5em; }
-
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
     #reader-view::-webkit-scrollbar { display: none; }
     #reader-view { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
@@ -138,8 +132,7 @@
   </div>
   
   <div class="selector-wrapper">
-    <select id="page-select" onchange="jumpToPage(this.value)">
-      </select>
+    <select id="page-select" onchange="jumpToPage(this.value)"></select>
   </div>
 </div>
 
@@ -152,7 +145,7 @@
    * PASTE YOUR BOOK TEXT BETWEEN THE BACKTICKS BELOW
    */
   const fullBookText = `
-    Capítulo 1
+  Capítulo 1
 
 
 Si de verdad les interesa lo que voy a contarles, lo primero que querrán saber es dónde nací, cómo fue todo ese rollo de mi infancia, qué hacían mis padres antes de tenerme a mí, y demás puñetas estilo David Copperfield, pero no tengo ganas de contarles nada de eso. Primero porque es una lata, y, segundo, porque a mis padres les daría un ataque si yo me pusiera aquí a hablarles de su vida privada. Para esas cosas son muy especiales, sobre todo mi padre. Son buena gente, no digo que no, pero a quisquillosos no hay quien les gane. Además, no crean que voy a contarles mi autobiografía con pelos y señales. Sólo voy a hablarles de una cosa de locos que me pasó durante las Navidades pasadas, antes de que me quedara tan débil que tuvieran que mandarme aquí a reponerme un poco. A D. B. tampoco le he contado más, y eso que es mi hermano. Vive en Hollywood. Como no está muy lejos de este antro, suele venir a verme casi todos los fines de semana. Él será quien me lleve a casa cuando salga de aquí, quizá el mes próximo. Acaba de comprarse un «Jaguar», uno de esos cacharros ingleses que se ponen en las doscientas millas por hora como si nada. Cerca de cuatro mil dólares le ha costado. Ahora está forrado el tío. Antes no. Cuando vivía en casa era sólo un escritor corriente y normal. Por si no saben quién es, les diré que ha escrito El pececillo secreto, que es un libro de cuentos fenomenal. El mejor de todos es el que se llama igual que el libro. Trata de un niño que tiene un pez y no se lo deja ver a nadie porque se lo ha comprado con su dinero. Es una historia estupenda. Ahora D. B. está en Hollywood prostituyéndose. Si hay algo que odio en el mundo es el cine. Ni me lo nombren.
@@ -3748,18 +3741,25 @@ D. B. no es tan latoso como los demás, pero también me hace siempre un montón
   function paginate() {
     const totalChars = fullBookText.length;
     const chunkTarget = Math.ceil(totalChars / 100);
-    let i = 0;
+    let start = 0;
 
-    while (i < totalChars) {
-      let end = i + chunkTarget;
+    while (start < totalChars) {
+      let end = start + chunkTarget;
+
       if (end < totalChars) {
-        const nextSpace = fullBookText.indexOf(' ', end);
-        if (nextSpace !== -1 && (nextSpace - end) < 300) {
-          end = nextSpace;
+        const searchRange = fullBookText.slice(end, end + 1000);
+        const match = searchRange.match(/[.!?]/);
+
+        if (match) {
+          end = end + match.index + 1;
+        } else {
+          const nextSpace = fullBookText.indexOf(' ', end);
+          if (nextSpace !== -1) end = nextSpace;
         }
       }
-      pages.push(fullBookText.slice(i, end).trim());
-      i = end;
+
+      pages.push(fullBookText.slice(start, end).trim());
+      start = end;
     }
     
     setupDropdown();
@@ -3768,11 +3768,11 @@ D. B. no es tan latoso como los demás, pero también me hace siempre un montón
 
   function setupDropdown() {
     const select = document.getElementById('page-select');
-    select.innerHTML = ''; // Clear existing
+    select.innerHTML = '';
     pages.forEach((_, index) => {
       const opt = document.createElement('option');
       opt.value = index;
-      opt.textContent = `PG ${index + 1} / ${pages.length}`;
+      opt.textContent = index + 1; // Just the number
       select.appendChild(opt);
     });
   }
@@ -3793,14 +3793,12 @@ D. B. no es tan latoso como los demás, pero también me hace siempre un montón
     const select = document.getElementById('page-select');
     
     container.innerHTML = pages[currentIndex]
-      .split('\n')
+      .split(/\n\s*\n/) 
       .filter(p => p.trim() !== '')
-      .map(p => `<p>${p}</p>`)
+      .map(p => `<p>${p.replace(/\n/g, ' ')}</p>`)
       .join('');
 
-    // Sync dropdown with current page
     select.value = currentIndex;
-    
     document.getElementById('reader-view').scrollTop = 0;
     window.history.replaceState(null, null, `#${currentIndex + 1}`);
   }
