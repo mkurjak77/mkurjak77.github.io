@@ -62,7 +62,6 @@
     }
     .nav-btn:active { background: var(--accent); }
 
-    /* Hidden native selects — used only to trigger iOS native picker */
     .native-select {
       position: absolute;
       opacity: 0;
@@ -71,10 +70,9 @@
       top: 0;
       left: 0;
       cursor: pointer;
-      font-size: 16px; /* prevents iOS zoom */
+      font-size: 16px;
     }
 
-    /* Visible styled button that shows the current value */
     .picker-btn {
       position: relative;
       background: var(--panel);
@@ -132,19 +130,21 @@
     <!-- Font size picker -->
     <div class="picker-btn">
       <span class="picker-label" id="font-label">21</span>
-      <select class="native-select" id="font-size-select" onchange="setFontSize(this.value)">
-        <option value="16">16</option>
-        <option value="18">18</option>
-        <option value="21" selected>21</option>
-        <option value="24">24</option>
-        <option value="28">28</option>
+      <select class="native-select notranslate" id="font-size-select"
+              translate="no"
+              onchange="setFontSize(this.value)">
+        <!-- options injected by JS to avoid Migaku mangling them -->
       </select>
     </div>
 
     <!-- Page picker -->
     <div class="picker-btn">
       <span class="picker-label" id="page-label">1</span>
-      <select class="native-select" id="page-select" onchange="jumpToPage(this.value)"></select>
+      <select class="native-select notranslate" id="page-select"
+              translate="no"
+              onchange="jumpToPage(this.value)">
+        <!-- options injected by JS to avoid Migaku mangling them -->
+      </select>
     </div>
   </div>
 </div>
@@ -156,6 +156,29 @@
 <script>
   let pages = [];
   let currentIndex = 0;
+
+  // Build an option using only DOM properties (no innerHTML) so Migaku
+  // never gets a chance to rewrite the text node.
+  function makeOption(value, label) {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.setAttribute('translate', 'no');
+    opt.className = 'notranslate';
+    // Use the data attribute as the source of truth and set textContent
+    // after creation so Migaku's mutation observer fires on an already-complete node.
+    opt.textContent = String(label);
+    return opt;
+  }
+
+  function setupFontSizes() {
+    const select = document.getElementById('font-size-select');
+    select.innerHTML = '';
+    [16, 18, 21, 24, 28].forEach(size => {
+      const opt = makeOption(size, size);
+      if (size === 21) opt.selected = true;
+      select.appendChild(opt);
+    });
+  }
 
   function setFontSize(size) {
     document.body.style.fontSize = size + 'px';
@@ -208,10 +231,7 @@
     const select = document.getElementById('page-select');
     select.innerHTML = '';
     pages.forEach((_, index) => {
-      const opt = document.createElement('option');
-      opt.value = index;
-      opt.textContent = index + 1;
-      select.appendChild(opt);
+      select.appendChild(makeOption(index, index + 1));
     });
   }
 
@@ -257,6 +277,7 @@
 
   window.addEventListener('hashchange', loadFromHash);
 
+  setupFontSizes();
   loadBook();
 </script>
 
