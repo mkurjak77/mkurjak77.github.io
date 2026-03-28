@@ -5,28 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#080808">
   <title>Reader</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Tenor+Sans&family=Lora:ital,wght@0,400;1,400&family=Merriweather:ital,wght@0,300;1,300&family=Crimson+Text:ital,wght@0,400;1,400&family=Source+Serif+4:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&family=Tenor+Sans&display=swap" rel="stylesheet">
+  
   <style>
     :root {
       --bg: #080808;
       --text: #c8c4bc;
       --accent: #a08060;
-      --border: rgba(255,255,255,0.1);
-      --panel: rgba(25,25,25,0.95);
-      --font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
-      --font-size: 21px;
+      --border: rgba(255, 255, 255, 0.1);
+      --panel: rgba(25, 25, 25, 0.9);
     }
-
+    
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+    
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: var(--font-family);
-      font-size: var(--font-size);
+      font-family: 'EB Garamond', serif;
+      font-size: 21px;
       line-height: 1.6;
       height: 100vh;
       overflow: hidden;
@@ -34,12 +30,12 @@
       flex-direction: column;
     }
 
-    /* ── Top nav ── */
     .top-nav {
       position: fixed;
       top: env(safe-area-inset-top, 10px);
-      left: 0; right: 0;
-      padding: 10px 12px;
+      left: 0;
+      right: 0;
+      padding: 10px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -47,103 +43,67 @@
       pointer-events: none;
     }
 
-    .btn-group,
-    .controls-group {
+    .btn-group {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       pointer-events: auto;
-      align-items: center;
     }
 
     .nav-btn {
       background: var(--panel);
       border: 1px solid var(--border);
       color: transparent;
-      width: 44px; height: 38px;
+      width: 44px;
+      height: 38px;
       border-radius: 6px;
       cursor: pointer;
       backdrop-filter: blur(10px);
-      flex-shrink: 0;
-      -webkit-tap-highlight-color: transparent;
+      transition: 0.2s;
     }
+
     .nav-btn:active { background: var(--accent); }
 
-    /* ── Custom dropdown ── */
-    .dd-wrap {
-      position: relative;
-      flex-shrink: 0;
-      height: 38px;
-    }
-
-    .dd-wrap.font-type-wrap { width: 80px; }
-    .dd-wrap.font-size-wrap { width: 56px; }
-    .dd-wrap.book-wrap      { width: 80px; }
-    .dd-wrap.page-wrap      { width: 58px; }
-
-    /* The visible button */
-    .dd-btn {
-      width: 100%; height: 100%;
+    .selector-wrapper {
+      pointer-events: auto;
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 6px;
       backdrop-filter: blur(10px);
-      color: var(--accent);
-      font-family: 'Tenor Sans', Georgia, sans-serif;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-tap-highlight-color: transparent;
+      width: 65px;
+      height: 38px;
     }
-    .dd-btn:active { background: rgba(160,128,96,0.25); }
 
-    /* The dropdown menu — opens downward from button */
-    .dd-menu {
-      display: none;
-      position: fixed; /* fixed so it always escapes any clipping parent */
-      background: #1a1a1a;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow-y: auto;
-      max-height: 260px;
-      z-index: 999;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
-      /* position set dynamically by JS */
+    .selector-wrapper.font-size-selector {
+      width: 60px;
     }
-    .dd-menu.open { display: block; }
 
-    .dd-item {
-      padding: 10px 16px;
-      color: var(--text);
-      font-family: 'Tenor Sans', Georgia, sans-serif;
+    .selector-wrapper select {
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      font-family: 'Tenor Sans', sans-serif;
       font-size: 14px;
+      font-weight: bold;
+      width: 100%;
+      height: 100%;
       cursor: pointer;
-      white-space: nowrap;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      -webkit-user-select: none;
+      appearance: none;
+      -webkit-appearance: none;
+      outline: none;
+      text-align: center;
+      padding: 0;
     }
-    .dd-item:active,
-    .dd-item.selected { color: var(--accent); background: rgba(160,128,96,0.12); }
 
-    /* Backdrop to close menu on outside tap */
-    #dd-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 998;
+    /* font-size: 16px on options prevents iOS from auto-zooming the page on tap */
+    .selector-wrapper select option {
+      background: #1a1a1a;
+      color: var(--text);
+      font-size: 16px;
     }
-    #dd-backdrop.open { display: block; }
 
-    /* ── Reader ── */
     #reader-view {
       flex: 1;
       overflow-y: auto;
@@ -152,16 +112,15 @@
       justify-content: center;
       scroll-behavior: smooth;
     }
+
     #content-container {
       max-width: 650px;
       width: 100%;
-      font-family: var(--font-family);
-      font-size: var(--font-size);
       animation: fadeIn 0.4s ease;
     }
-    p { margin-bottom: 1.5em; }
 
-    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    p { margin-bottom: 1.5em; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     #reader-view::-webkit-scrollbar { display: none; }
     #reader-view { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
@@ -174,254 +133,131 @@
     <button class="nav-btn" onclick="next()" aria-label="Next"></button>
   </div>
 
-  <div class="controls-group">
-
-    <!-- Font Type -->
-    <div class="dd-wrap font-type-wrap">
-      <button class="dd-btn" id="font-btn" onclick="toggleMenu('font-menu', 'font-btn')">Garamond</button>
-      <div class="dd-menu" id="font-menu"></div>
+  <div class="btn-group">
+    <div class="selector-wrapper font-size-selector">
+      <select id="font-size-select" onchange="setFontSize(this.value)" aria-label="Font size">
+        <option value="16">16</option>
+        <option value="18">18</option>
+        <option value="21" selected>21</option>
+        <option value="24">24</option>
+        <option value="28">28</option>
+      </select>
     </div>
 
-    <!-- Font Size -->
-    <div class="dd-wrap font-size-wrap">
-      <button class="dd-btn" id="size-btn" onclick="toggleMenu('size-menu', 'size-btn')">21</button>
-      <div class="dd-menu" id="size-menu"></div>
+    <div class="selector-wrapper">
+      <select id="page-select" onchange="jumpToPage(this.value)" aria-label="Page number"></select>
     </div>
-
-    <!-- Book -->
-    <div class="dd-wrap book-wrap">
-      <button class="dd-btn" id="book-btn" onclick="toggleMenu('book-menu', 'book-btn')">Book 1</button>
-      <div class="dd-menu" id="book-menu"></div>
-    </div>
-
-    <!-- Page -->
-    <div class="dd-wrap page-wrap">
-      <button class="dd-btn" id="page-btn" onclick="toggleMenu('page-menu', 'page-btn')">1</button>
-      <div class="dd-menu" id="page-menu"></div>
-    </div>
-
   </div>
 </div>
-
-<!-- Backdrop -->
-<div id="dd-backdrop" onclick="closeAll()"></div>
 
 <main id="reader-view">
   <div id="content-container"></div>
 </main>
 
 <script>
-  // ── Dropdown engine ───────────────────────────────────────────────────────
-
-  let activeMenu = null;
-
-  function toggleMenu(menuId, btnId) {
-    const menu = document.getElementById(menuId);
-    const btn  = document.getElementById(btnId);
-    const backdrop = document.getElementById('dd-backdrop');
-
-    if (activeMenu && activeMenu !== menu) closeAll();
-
-    if (menu.classList.contains('open')) {
-      closeAll();
-      return;
-    }
-
-    // Position the menu relative to the button using getBoundingClientRect
-    const rect = btn.getBoundingClientRect();
-    const menuWidth = Math.max(btn.offsetWidth, 120);
-
-    menu.style.width  = menuWidth + 'px';
-    // Try to open below; if not enough room, open above
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const menuHeight = Math.min(260, menu.scrollHeight || 200);
-
-    if (spaceBelow < menuHeight + 8 && rect.top > menuHeight + 8) {
-      // Open above
-      menu.style.top  = '';
-      menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
-    } else {
-      menu.style.bottom = '';
-      menu.style.top  = (rect.bottom + 4) + 'px';
-    }
-
-    // Align right edge of menu to right edge of button
-    const rightEdge = window.innerWidth - rect.right;
-    menu.style.right = rightEdge + 'px';
-    menu.style.left  = 'auto';
-
-    menu.classList.add('open');
-    backdrop.classList.add('open');
-    activeMenu = menu;
-  }
-
-  function closeAll() {
-    document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('open'));
-    document.getElementById('dd-backdrop').classList.remove('open');
-    activeMenu = null;
-  }
-
-  function buildMenu(menuId, items, onSelect) {
-    // items: array of { label, value }
-    const menu = document.getElementById(menuId);
-    menu.innerHTML = '';
-    items.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'dd-item';
-      div.textContent = item.label;
-      div.setAttribute('data-value', item.value);
-      div.onclick = () => { onSelect(item.value, item.label, div); closeAll(); };
-      menu.appendChild(div);
-    });
-  }
-
-  function markSelected(menuId, value) {
-    document.querySelectorAll(`#${menuId} .dd-item`).forEach(el => {
-      el.classList.toggle('selected', el.getAttribute('data-value') === String(value));
-    });
-  }
-
-  // ── Font type ─────────────────────────────────────────────────────────────
-
-  const FONTS = [
-    { label: 'Garamond',  value: "'EB Garamond',Georgia,'Times New Roman',serif" },
-    { label: 'Lora',      value: "'Lora',Georgia,'Times New Roman',serif" },
-    { label: 'Merriweather', value: "'Merriweather','Times New Roman',serif" },
-    { label: 'Crimson',   value: "'Crimson Text',Georgia,serif" },
-    { label: 'Src Serif', value: "'Source Serif 4','Times New Roman',serif" },
-  ];
-
-  buildMenu('font-menu', FONTS, (value, label) => {
-    document.documentElement.style.setProperty('--font-family', value);
-    document.getElementById('content-container').style.fontFamily = value;
-    document.getElementById('font-btn').textContent = label;
-    markSelected('font-menu', value);
-  });
-  markSelected('font-menu', FONTS[0].value);
-
-  // ── Font size ─────────────────────────────────────────────────────────────
-
-  const SIZES = [
-    { label: '16', value: '16px' },
-    { label: '18', value: '18px' },
-    { label: '21', value: '21px' },
-    { label: '24', value: '24px' },
-    { label: '28', value: '28px' },
-  ];
-
-  buildMenu('size-menu', SIZES, (value, label) => {
-    document.documentElement.style.setProperty('--font-size', value);
-    document.getElementById('content-container').style.fontSize = value;
-    document.getElementById('size-btn').textContent = label;
-    markSelected('size-menu', value);
-  });
-  markSelected('size-menu', '21px');
-
-  // ── Books ─────────────────────────────────────────────────────────────────
-
-  const BOOKS = [
-    { label: 'Book 1', value: 'book.txt' },
-    // Add more: { label: 'Book 2', value: 'book2.txt' },
-  ];
-
-  buildMenu('book-menu', BOOKS, (value, label) => {
-    document.getElementById('book-btn').textContent = label;
-    markSelected('book-menu', value);
-    window.history.replaceState(null, null, '#1');
-    loadBook(value);
-  });
-  markSelected('book-menu', 'book.txt');
-
-  // ── Pages ─────────────────────────────────────────────────────────────────
-
   let pages = [];
   let currentIndex = 0;
 
-  function buildPageMenu() {
-    const items = pages.map((_, i) => ({ label: String(i + 1), value: String(i) }));
-    buildMenu('page-menu', items, (value, label) => {
-      currentIndex = parseInt(value);
-      render();
-    });
+  function setFontSize(size) {
+    document.body.style.fontSize = size + 'px';
   }
 
-  // ── Book loading ──────────────────────────────────────────────────────────
-
-  async function loadBook(filename) {
-    filename = filename || 'book.txt';
+  async function loadBook() {
     try {
-      const response = await fetch(filename);
-      if (!response.ok) throw new Error('Could not load ' + filename);
-      const text = await response.text();
-      paginate(text);
+      const response = await fetch('book.txt');
+      if (!response.ok) throw new Error('Could not load book.txt');
+      const fullBookText = await response.text();
+      paginate(fullBookText);
     } catch (err) {
       document.getElementById('content-container').innerHTML =
-        '<p style="color:#a08060;">Error: could not load ' + filename +
-        ' — make sure it is in the same folder as index.html.</p>';
+        '<p style="color:#a08060;">Error: could not load book.txt — make sure it is in the same folder as index.html.</p>';
       console.error(err);
     }
   }
 
-  function paginate(fullText) {
+  function paginate(fullBookText) {
     pages = [];
-    const totalChars = fullText.length;
+    const totalChars = fullBookText.length;
     const chunkTarget = Math.ceil(totalChars / 100);
     let start = 0;
+
     while (start < totalChars) {
       let end = start + chunkTarget;
+
       if (end < totalChars) {
-        const searchRange = fullText.slice(end, end + 1000);
+        const searchRange = fullBookText.slice(end, end + 1000);
         const match = searchRange.match(/[.!?]/);
+
         if (match) {
           end = end + match.index + 1;
         } else {
-          const nextSpace = fullText.indexOf(' ', end);
+          const nextSpace = fullBookText.indexOf(' ', end);
           if (nextSpace !== -1) end = nextSpace;
         }
       }
-      pages.push(fullText.slice(start, end).trim());
+
+      pages.push(fullBookText.slice(start, end).trim());
       start = end;
     }
-    buildPageMenu();
+
+    setupDropdown();
     loadFromHash();
   }
 
-  // ── Rendering ─────────────────────────────────────────────────────────────
+  function setupDropdown() {
+    const select = document.getElementById('page-select');
+    select.innerHTML = '';
+    pages.forEach((_, index) => {
+      const opt = document.createElement('option');
+      opt.value = index;
+      opt.textContent = index + 1;
+      select.appendChild(opt);
+    });
+  }
 
   function loadFromHash() {
     const hash = window.location.hash.replace('#', '');
     const pageNum = parseInt(hash);
-    currentIndex = (!isNaN(pageNum) && pageNum > 0 && pageNum <= pages.length)
-      ? pageNum - 1 : 0;
+    if (!isNaN(pageNum) && pageNum > 0 && pageNum <= pages.length) {
+      currentIndex = pageNum - 1;
+    } else {
+      currentIndex = 0;
+    }
     render();
   }
 
   function render() {
     const container = document.getElementById('content-container');
+    const select = document.getElementById('page-select');
+    
     container.innerHTML = pages[currentIndex]
-      .split(/\n\s*\n/)
+      .split(/\n\s*\n/) 
       .filter(p => p.trim() !== '')
       .map(p => `<p>${p.replace(/\n/g, ' ')}</p>`)
       .join('');
 
-    const label = String(currentIndex + 1);
-    document.getElementById('page-btn').textContent = label;
-    markSelected('page-menu', String(currentIndex));
-
+    select.value = currentIndex;
     document.getElementById('reader-view').scrollTop = 0;
     window.history.replaceState(null, null, `#${currentIndex + 1}`);
+  }
+
+  function jumpToPage(val) {
+    currentIndex = parseInt(val);
+    render();
   }
 
   function next() { if (currentIndex < pages.length - 1) { currentIndex++; render(); } }
   function prev() { if (currentIndex > 0) { currentIndex--; render(); } }
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight') next();
-    if (e.key === 'ArrowLeft')  prev();
+    if (e.key === "ArrowRight") next();
+    if (e.key === "ArrowLeft") prev();
   });
 
   window.addEventListener('hashchange', loadFromHash);
-  loadBook('book.txt');
+
+  loadBook();
 </script>
+
 </body>
 </html>
