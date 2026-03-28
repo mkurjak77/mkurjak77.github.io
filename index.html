@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#080808">
   <title>Reader</title>
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&family=Tenor+Sans&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&family=Tenor+Sans&family=Inter:wght@400;500&family=Playfair+Display:ital,wght@0,400;1,400&family=Roboto+Mono&display=swap" rel="stylesheet">
   
   <style>
     :root {
@@ -22,7 +22,7 @@
       background: var(--bg);
       color: var(--text);
       font-family: 'EB Garamond', serif;
-      font-size: 21px;
+      font-size: 21px; /* Default size */
       line-height: 1.6;
       height: 100vh;
       overflow: hidden;
@@ -30,42 +30,29 @@
       flex-direction: column;
     }
 
+    /* Top Navigation Bar */
     .top-nav {
       position: fixed;
       top: env(safe-area-inset-top, 10px);
       left: 0;
       right: 0;
-      padding: 10px 20px;
+      padding: 10px 15px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       z-index: 100;
       pointer-events: none;
+      gap: 5px;
     }
 
-    .btn-group {
+    .controls-left {
       display: flex;
-      gap: 10px;
+      gap: 6px;
       pointer-events: auto;
     }
 
-    .nav-btn {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      color: transparent; /* Makes text invisible */
-      width: 44px; /* Slightly larger hit area for mobile */
-      height: 38px;
-      border-radius: 6px;
-      cursor: pointer;
-      backdrop-filter: blur(10px);
-      transition: 0.2s;
-    }
-
-    .nav-btn:active { background: var(--accent); }
-
-    /* Fixed Width for the dropdown to prevent stretching on mobile */
-    .selector-wrapper {
-      pointer-events: auto;
+    /* Shared style for all control boxes */
+    .control-box {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 6px;
@@ -73,36 +60,42 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 65px; /* Fixed width prevents stretching */
       height: 38px;
     }
 
-    #page-select {
+    .nav-btn {
+      width: 40px;
+      cursor: pointer;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      backdrop-filter: blur(10px);
+    }
+    .nav-btn:active { background: var(--accent); }
+
+    /* Dropdown Reset */
+    select {
       background: transparent;
       border: none;
       color: var(--accent);
       font-family: 'Tenor Sans', sans-serif;
-      font-size: 14px;
+      font-size: 11px;
       font-weight: bold;
-      width: 100%;
       height: 100%;
       cursor: pointer;
       appearance: none;
       -webkit-appearance: none;
       outline: none;
       text-align: center;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 0 10px;
     }
 
-    /* Style for the options inside (desktop only) */
-    #page-select option {
-      background: #1a1a1a;
-      color: var(--text);
-    }
+    /* Specific widths to prevent mobile stretching */
+    .font-size-w { width: 50px; }
+    .font-type-w { width: 85px; }
+    .page-num-w { width: 60px; pointer-events: auto; }
 
+    /* Main Reader Area */
     #reader-view {
       flex: 1;
       overflow-y: auto;
@@ -127,12 +120,31 @@
 <body>
 
 <div class="top-nav">
-  <div class="btn-group">
-    <button class="nav-btn" onclick="prev()" aria-label="Previous"></button>
-    <button class="nav-btn" onclick="next()" aria-label="Next"></button>
+  <div class="controls-left">
+    <button class="nav-btn" onclick="prev()"></button>
+    <button class="nav-btn" onclick="next()"></button>
+    
+    <div class="control-box font-type-w">
+      <select id="font-family-select" onchange="changeFont(this.value)">
+        <option value="'EB Garamond', serif">Serif</option>
+        <option value="'Playfair Display', serif">Classic</option>
+        <option value="'Inter', sans-serif">Sans</option>
+        <option value="'Roboto Mono', monospace">Mono</option>
+      </select>
+    </div>
+
+    <div class="control-box font-size-w">
+      <select id="font-size-select" onchange="changeSize(this.value)">
+        <option value="18px">18</option>
+        <option value="21px" selected>21</option>
+        <option value="24px">24</option>
+        <option value="28px">28</option>
+        <option value="32px">32</option>
+      </select>
+    </div>
   </div>
   
-  <div class="selector-wrapper">
+  <div class="control-box page-num-w">
     <select id="page-select" onchange="jumpToPage(this.value)"></select>
   </div>
 </div>
@@ -146,7 +158,6 @@
    * PASTE YOUR BOOK TEXT BETWEEN THE BACKTICKS BELOW
    */
   const fullBookText =
-
 `
   Capítulo 1
 
@@ -3748,11 +3759,9 @@ D. B. no es tan latoso como los demás, pero también me hace siempre un montón
 
     while (start < totalChars) {
       let end = start + chunkTarget;
-
       if (end < totalChars) {
         const searchRange = fullBookText.slice(end, end + 1000);
         const match = searchRange.match(/[.!?]/);
-
         if (match) {
           end = end + match.index + 1;
         } else {
@@ -3760,11 +3769,9 @@ D. B. no es tan latoso como los demás, pero también me hace siempre un montón
           if (nextSpace !== -1) end = nextSpace;
         }
       }
-
       pages.push(fullBookText.slice(start, end).trim());
       start = end;
     }
-    
     setupDropdown();
     loadFromHash();
   }
@@ -3778,17 +3785,6 @@ D. B. no es tan latoso como los demás, pero también me hace siempre un montón
       opt.textContent = index + 1;
       select.appendChild(opt);
     });
-  }
-
-  function loadFromHash() {
-    const hash = window.location.hash.replace('#', '');
-    const pageNum = parseInt(hash);
-    if (!isNaN(pageNum) && pageNum > 0 && pageNum <= pages.length) {
-      currentIndex = pageNum - 1;
-    } else {
-      currentIndex = 0;
-    }
-    render();
   }
 
   function render() {
@@ -3806,6 +3802,14 @@ D. B. no es tan latoso como los demás, pero también me hace siempre un montón
     window.history.replaceState(null, null, `#${currentIndex + 1}`);
   }
 
+  function changeFont(val) {
+    document.body.style.fontFamily = val;
+  }
+
+  function changeSize(val) {
+    document.body.style.fontSize = val;
+  }
+
   function jumpToPage(val) {
     currentIndex = parseInt(val);
     render();
@@ -3818,6 +3822,17 @@ D. B. no es tan latoso como los demás, pero también me hace siempre un montón
     if (e.key === "ArrowRight") next();
     if (e.key === "ArrowLeft") prev();
   });
+
+  function loadFromHash() {
+    const hash = window.location.hash.replace('#', '');
+    const pageNum = parseInt(hash);
+    if (!isNaN(pageNum) && pageNum > 0 && pageNum <= pages.length) {
+      currentIndex = pageNum - 1;
+    } else {
+      currentIndex = 0;
+    }
+    render();
+  }
 
   window.addEventListener('hashchange', loadFromHash);
   paginate();
