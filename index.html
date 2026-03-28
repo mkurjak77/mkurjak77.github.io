@@ -45,37 +45,36 @@
 
     .btn-group {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       pointer-events: auto;
     }
 
     .nav-btn {
       background: var(--panel);
       border: 1px solid var(--border);
-      color: var(--text);
-      width: 38px;
-      height: 34px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      color: transparent; /* Makes text invisible */
+      width: 44px; /* Slightly larger hit area for mobile */
+      height: 38px;
+      border-radius: 6px;
       cursor: pointer;
       backdrop-filter: blur(10px);
-      font-size: 18px;
       transition: 0.2s;
     }
 
-    .nav-btn:active { background: var(--accent); color: white; }
+    .nav-btn:active { background: var(--accent); }
 
+    /* Fixed Width for the dropdown to prevent stretching on mobile */
     .selector-wrapper {
       pointer-events: auto;
       background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 6px;
       backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
-      padding: 0 12px;
+      justify-content: center;
+      width: 65px; /* Fixed width prevents stretching */
+      height: 38px;
     }
 
     #page-select {
@@ -83,23 +82,25 @@
       border: none;
       color: var(--accent);
       font-family: 'Tenor Sans', sans-serif;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: bold;
-      padding: 8px 0;
+      width: 100%;
+      height: 100%;
       cursor: pointer;
       appearance: none;
       -webkit-appearance: none;
       outline: none;
       text-align: center;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    /* Small dot/arrow indicator */
-    .selector-wrapper::after {
-      content: '•';
-      font-size: 10px;
-      color: var(--accent);
-      margin-left: 6px;
-      opacity: 0.5;
+    /* Style for the options inside (desktop only) */
+    #page-select option {
+      background: #1a1a1a;
+      color: var(--text);
     }
 
     #reader-view {
@@ -127,8 +128,8 @@
 
 <div class="top-nav">
   <div class="btn-group">
-    <button class="nav-btn" onclick="prev()">‹</button>
-    <button class="nav-btn" onclick="next()">›</button>
+    <button class="nav-btn" onclick="prev()" aria-label="Previous"></button>
+    <button class="nav-btn" onclick="next()" aria-label="Next"></button>
   </div>
   
   <div class="selector-wrapper">
@@ -144,7 +145,9 @@
   /**
    * PASTE YOUR BOOK TEXT BETWEEN THE BACKTICKS BELOW
    */
-  const fullBookText = `
+  const fullBookText =
+
+`
   Capítulo 1
 
 
@@ -3772,7 +3775,7 @@ D. B. no es tan latoso como los demás, pero también me hace siempre un montón
     pages.forEach((_, index) => {
       const opt = document.createElement('option');
       opt.value = index;
-      opt.textContent = index + 1; // Just the number
+      opt.textContent = index + 1;
       select.appendChild(opt);
     });
   }
@@ -3822,3 +3825,5 @@ D. B. no es tan latoso como los demás, pero también me hace siempre un montón
 
 </body>
 </html>
+
+
