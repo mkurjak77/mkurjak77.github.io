@@ -5,11 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#080808">
   <title>Reader</title>
-  <!--
-    Google Fonts loaded with crossorigin + fallback stack.
-    If the WebView blocks it, the CSS font-family stacks below
-    fall back gracefully to system serif fonts.
-  -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Tenor+Sans&family=Lora:ital,wght@0,400;1,400&family=Merriweather:ital,wght@0,300;1,300&family=Crimson+Text:ital,wght@0,400;1,400&family=Source+Serif+4:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
@@ -19,8 +14,8 @@
       --bg: #080808;
       --text: #c8c4bc;
       --accent: #a08060;
-      --border: rgba(255, 255, 255, 0.1);
-      --panel: rgba(25, 25, 25, 0.9);
+      --border: rgba(255,255,255,0.1);
+      --panel: rgba(25,25,25,0.95);
       --font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
       --font-size: 21px;
     }
@@ -39,11 +34,11 @@
       flex-direction: column;
     }
 
+    /* ── Top nav ── */
     .top-nav {
       position: fixed;
       top: env(safe-area-inset-top, 10px);
-      left: 0;
-      right: 0;
+      left: 0; right: 0;
       padding: 10px 12px;
       display: flex;
       justify-content: space-between;
@@ -64,83 +59,91 @@
       background: var(--panel);
       border: 1px solid var(--border);
       color: transparent;
-      width: 44px;
-      height: 38px;
+      width: 44px; height: 38px;
       border-radius: 6px;
       cursor: pointer;
       backdrop-filter: blur(10px);
-      transition: background 0.2s;
       flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
     }
     .nav-btn:active { background: var(--accent); }
 
-    /*
-      Wrapper acts as the visual "pill" box.
-      We size it, clip it, and let the native <select> fill it completely
-      so the entire box is a tap target — important for small WebViews.
-    */
-    .selector-wrapper {
+    /* ── Custom dropdown ── */
+    .dd-wrap {
+      position: relative;
+      flex-shrink: 0;
+      height: 38px;
+    }
+
+    .dd-wrap.font-type-wrap { width: 80px; }
+    .dd-wrap.font-size-wrap { width: 56px; }
+    .dd-wrap.book-wrap      { width: 80px; }
+    .dd-wrap.page-wrap      { width: 58px; }
+
+    /* The visible button */
+    .dd-btn {
+      width: 100%; height: 100%;
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 6px;
       backdrop-filter: blur(10px);
-      height: 38px;
-      overflow: hidden;
-      flex-shrink: 0;
-      position: relative;
-      display: flex;
-      align-items: stretch;
-    }
-
-    .page-wrapper      { width: 58px; }
-    .book-wrapper      { width: 80px; }
-    .font-size-wrapper { width: 56px; }
-    .font-type-wrapper { width: 80px; }
-
-    /*
-      Key WebView fixes:
-      - NO appearance:auto / appearance:none toggle tricks — just leave default
-      - Set explicit color on both select AND option
-      - Use a label overlay so the box always shows text even if the
-        native select renders its selected-value area as blank
-      - Keep the <select> fully covering the wrapper for tap area
-    */
-    .nav-select {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.011; /* near-invisible but fully tappable */
-      cursor: pointer;
-      font-size: 16px; /* prevents iOS zoom on focus */
-      border: none;
-      background: transparent;
-      color: var(--text);
-      z-index: 2;
-    }
-
-    /* The visible label that we update manually via JS */
-    .select-label {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       color: var(--accent);
       font-family: 'Tenor Sans', Georgia, sans-serif;
       font-size: 13px;
       font-weight: bold;
-      pointer-events: none;
-      z-index: 1;
-      text-align: center;
-      padding: 0 3px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
+    .dd-btn:active { background: rgba(160,128,96,0.25); }
 
+    /* The dropdown menu — opens downward from button */
+    .dd-menu {
+      display: none;
+      position: fixed; /* fixed so it always escapes any clipping parent */
+      background: #1a1a1a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow-y: auto;
+      max-height: 260px;
+      z-index: 999;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+      /* position set dynamically by JS */
+    }
+    .dd-menu.open { display: block; }
+
+    .dd-item {
+      padding: 10px 16px;
+      color: var(--text);
+      font-family: 'Tenor Sans', Georgia, sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .dd-item:active,
+    .dd-item.selected { color: var(--accent); background: rgba(160,128,96,0.12); }
+
+    /* Backdrop to close menu on outside tap */
+    #dd-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 998;
+    }
+    #dd-backdrop.open { display: block; }
+
+    /* ── Reader ── */
     #reader-view {
       flex: 1;
       overflow-y: auto;
@@ -149,7 +152,6 @@
       justify-content: center;
       scroll-behavior: smooth;
     }
-
     #content-container {
       max-width: 650px;
       width: 100%;
@@ -157,11 +159,9 @@
       font-size: var(--font-size);
       animation: fadeIn 0.4s ease;
     }
-
     p { margin-bottom: 1.5em; }
 
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
     #reader-view::-webkit-scrollbar { display: none; }
     #reader-view { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
@@ -177,58 +177,173 @@
   <div class="controls-group">
 
     <!-- Font Type -->
-    <div class="selector-wrapper font-type-wrapper">
-      <span class="select-label" id="font-label">Garamond</span>
-      <select id="font-select" class="nav-select" aria-label="Font type"
-              onchange="setFont(this.value, this.options[this.selectedIndex].text)">
-        <option value="'EB Garamond',Georgia,'Times New Roman',serif">Garamond</option>
-        <option value="'Lora',Georgia,'Times New Roman',serif">Lora</option>
-        <option value="'Merriweather','Times New Roman',serif">Merriwr.</option>
-        <option value="'Crimson Text',Georgia,serif">Crimson</option>
-        <option value="'Source Serif 4','Times New Roman',serif">Src Serif</option>
-      </select>
+    <div class="dd-wrap font-type-wrap">
+      <button class="dd-btn" id="font-btn" onclick="toggleMenu('font-menu', 'font-btn')">Garamond</button>
+      <div class="dd-menu" id="font-menu"></div>
     </div>
 
     <!-- Font Size -->
-    <div class="selector-wrapper font-size-wrapper">
-      <span class="select-label" id="size-label">21</span>
-      <select id="size-select" class="nav-select" aria-label="Font size"
-              onchange="setSize(this.value, this.options[this.selectedIndex].text)">
-        <option value="16px">16</option>
-        <option value="18px">18</option>
-        <option value="21px" selected>21</option>
-        <option value="24px">24</option>
-        <option value="28px">28</option>
-      </select>
+    <div class="dd-wrap font-size-wrap">
+      <button class="dd-btn" id="size-btn" onclick="toggleMenu('size-menu', 'size-btn')">21</button>
+      <div class="dd-menu" id="size-menu"></div>
     </div>
 
     <!-- Book -->
-    <div class="selector-wrapper book-wrapper">
-      <span class="select-label" id="book-label">Book 1</span>
-      <select id="book-select" class="nav-select" aria-label="Select book"
-              onchange="switchBook(this.value, this.options[this.selectedIndex].text)">
-        <option value="book.txt">Book 1</option>
-        <!-- Add more books: <option value="book2.txt">Book 2</option> -->
-      </select>
+    <div class="dd-wrap book-wrap">
+      <button class="dd-btn" id="book-btn" onclick="toggleMenu('book-menu', 'book-btn')">Book 1</button>
+      <div class="dd-menu" id="book-menu"></div>
     </div>
 
-    <!-- Page Number -->
-    <div class="selector-wrapper page-wrapper">
-      <span class="select-label" id="page-label">1</span>
-      <select id="page-select" class="nav-select" aria-label="Page number"
-              onchange="jumpToPage(this.value)"></select>
+    <!-- Page -->
+    <div class="dd-wrap page-wrap">
+      <button class="dd-btn" id="page-btn" onclick="toggleMenu('page-menu', 'page-btn')">1</button>
+      <div class="dd-menu" id="page-menu"></div>
     </div>
 
   </div>
 </div>
+
+<!-- Backdrop -->
+<div id="dd-backdrop" onclick="closeAll()"></div>
 
 <main id="reader-view">
   <div id="content-container"></div>
 </main>
 
 <script>
+  // ── Dropdown engine ───────────────────────────────────────────────────────
+
+  let activeMenu = null;
+
+  function toggleMenu(menuId, btnId) {
+    const menu = document.getElementById(menuId);
+    const btn  = document.getElementById(btnId);
+    const backdrop = document.getElementById('dd-backdrop');
+
+    if (activeMenu && activeMenu !== menu) closeAll();
+
+    if (menu.classList.contains('open')) {
+      closeAll();
+      return;
+    }
+
+    // Position the menu relative to the button using getBoundingClientRect
+    const rect = btn.getBoundingClientRect();
+    const menuWidth = Math.max(btn.offsetWidth, 120);
+
+    menu.style.width  = menuWidth + 'px';
+    // Try to open below; if not enough room, open above
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const menuHeight = Math.min(260, menu.scrollHeight || 200);
+
+    if (spaceBelow < menuHeight + 8 && rect.top > menuHeight + 8) {
+      // Open above
+      menu.style.top  = '';
+      menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+    } else {
+      menu.style.bottom = '';
+      menu.style.top  = (rect.bottom + 4) + 'px';
+    }
+
+    // Align right edge of menu to right edge of button
+    const rightEdge = window.innerWidth - rect.right;
+    menu.style.right = rightEdge + 'px';
+    menu.style.left  = 'auto';
+
+    menu.classList.add('open');
+    backdrop.classList.add('open');
+    activeMenu = menu;
+  }
+
+  function closeAll() {
+    document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('open'));
+    document.getElementById('dd-backdrop').classList.remove('open');
+    activeMenu = null;
+  }
+
+  function buildMenu(menuId, items, onSelect) {
+    // items: array of { label, value }
+    const menu = document.getElementById(menuId);
+    menu.innerHTML = '';
+    items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'dd-item';
+      div.textContent = item.label;
+      div.setAttribute('data-value', item.value);
+      div.onclick = () => { onSelect(item.value, item.label, div); closeAll(); };
+      menu.appendChild(div);
+    });
+  }
+
+  function markSelected(menuId, value) {
+    document.querySelectorAll(`#${menuId} .dd-item`).forEach(el => {
+      el.classList.toggle('selected', el.getAttribute('data-value') === String(value));
+    });
+  }
+
+  // ── Font type ─────────────────────────────────────────────────────────────
+
+  const FONTS = [
+    { label: 'Garamond',  value: "'EB Garamond',Georgia,'Times New Roman',serif" },
+    { label: 'Lora',      value: "'Lora',Georgia,'Times New Roman',serif" },
+    { label: 'Merriweather', value: "'Merriweather','Times New Roman',serif" },
+    { label: 'Crimson',   value: "'Crimson Text',Georgia,serif" },
+    { label: 'Src Serif', value: "'Source Serif 4','Times New Roman',serif" },
+  ];
+
+  buildMenu('font-menu', FONTS, (value, label) => {
+    document.documentElement.style.setProperty('--font-family', value);
+    document.getElementById('content-container').style.fontFamily = value;
+    document.getElementById('font-btn').textContent = label;
+    markSelected('font-menu', value);
+  });
+  markSelected('font-menu', FONTS[0].value);
+
+  // ── Font size ─────────────────────────────────────────────────────────────
+
+  const SIZES = [
+    { label: '16', value: '16px' },
+    { label: '18', value: '18px' },
+    { label: '21', value: '21px' },
+    { label: '24', value: '24px' },
+    { label: '28', value: '28px' },
+  ];
+
+  buildMenu('size-menu', SIZES, (value, label) => {
+    document.documentElement.style.setProperty('--font-size', value);
+    document.getElementById('content-container').style.fontSize = value;
+    document.getElementById('size-btn').textContent = label;
+    markSelected('size-menu', value);
+  });
+  markSelected('size-menu', '21px');
+
+  // ── Books ─────────────────────────────────────────────────────────────────
+
+  const BOOKS = [
+    { label: 'Book 1', value: 'book.txt' },
+    // Add more: { label: 'Book 2', value: 'book2.txt' },
+  ];
+
+  buildMenu('book-menu', BOOKS, (value, label) => {
+    document.getElementById('book-btn').textContent = label;
+    markSelected('book-menu', value);
+    window.history.replaceState(null, null, '#1');
+    loadBook(value);
+  });
+  markSelected('book-menu', 'book.txt');
+
+  // ── Pages ─────────────────────────────────────────────────────────────────
+
   let pages = [];
   let currentIndex = 0;
+
+  function buildPageMenu() {
+    const items = pages.map((_, i) => ({ label: String(i + 1), value: String(i) }));
+    buildMenu('page-menu', items, (value, label) => {
+      currentIndex = parseInt(value);
+      render();
+    });
+  }
 
   // ── Book loading ──────────────────────────────────────────────────────────
 
@@ -247,21 +362,11 @@
     }
   }
 
-  function switchBook(filename, label) {
-    document.getElementById('book-label').textContent = label;
-    // Reset to page 1 when switching books
-    window.history.replaceState(null, null, '#1');
-    loadBook(filename);
-  }
-
-  // ── Pagination ────────────────────────────────────────────────────────────
-
   function paginate(fullText) {
     pages = [];
     const totalChars = fullText.length;
     const chunkTarget = Math.ceil(totalChars / 100);
     let start = 0;
-
     while (start < totalChars) {
       let end = start + chunkTarget;
       if (end < totalChars) {
@@ -277,26 +382,8 @@
       pages.push(fullText.slice(start, end).trim());
       start = end;
     }
-
-    buildPageDropdown();
+    buildPageMenu();
     loadFromHash();
-  }
-
-  // ── Page dropdown — built carefully for WebView compatibility ─────────────
-
-  function buildPageDropdown() {
-    const select = document.getElementById('page-select');
-
-    // Remove old options one by one (safer than innerHTML = '' in some WebViews)
-    while (select.options.length > 0) select.remove(0);
-
-    pages.forEach((_, i) => {
-      const opt = new Option(String(i + 1), String(i));
-      select.add(opt);
-    });
-
-    // Force WebView to acknowledge the new options list
-    select.selectedIndex = 0;
   }
 
   // ── Rendering ─────────────────────────────────────────────────────────────
@@ -311,52 +398,22 @@
 
   function render() {
     const container = document.getElementById('content-container');
-    const select    = document.getElementById('page-select');
-    const label     = document.getElementById('page-label');
-
     container.innerHTML = pages[currentIndex]
       .split(/\n\s*\n/)
       .filter(p => p.trim() !== '')
       .map(p => `<p>${p.replace(/\n/g, ' ')}</p>`)
       .join('');
 
-    // Sync the native select value
-    select.value = String(currentIndex);
-    // Update the visible label overlay
-    label.textContent = String(currentIndex + 1);
+    const label = String(currentIndex + 1);
+    document.getElementById('page-btn').textContent = label;
+    markSelected('page-menu', String(currentIndex));
 
     document.getElementById('reader-view').scrollTop = 0;
     window.history.replaceState(null, null, `#${currentIndex + 1}`);
   }
 
-  function jumpToPage(val) {
-    currentIndex = parseInt(val);
-    document.getElementById('page-label').textContent = String(currentIndex + 1);
-    render();
-  }
-
-  function next() {
-    if (currentIndex < pages.length - 1) { currentIndex++; render(); }
-  }
-  function prev() {
-    if (currentIndex > 0) { currentIndex--; render(); }
-  }
-
-  // ── Font / size controls ──────────────────────────────────────────────────
-
-  function setFont(value, label) {
-    document.documentElement.style.setProperty('--font-family', value);
-    document.getElementById('content-container').style.fontFamily = value;
-    document.getElementById('font-label').textContent = label;
-  }
-
-  function setSize(value, label) {
-    document.documentElement.style.setProperty('--font-size', value);
-    document.getElementById('content-container').style.fontSize = value;
-    document.getElementById('size-label').textContent = label;
-  }
-
-  // ── Keyboard nav ──────────────────────────────────────────────────────────
+  function next() { if (currentIndex < pages.length - 1) { currentIndex++; render(); } }
+  function prev() { if (currentIndex > 0) { currentIndex--; render(); } }
 
   document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') next();
@@ -364,10 +421,7 @@
   });
 
   window.addEventListener('hashchange', loadFromHash);
-
-  // ── Boot ──────────────────────────────────────────────────────────────────
   loadBook('book.txt');
 </script>
-
 </body>
 </html>
