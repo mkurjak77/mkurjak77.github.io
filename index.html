@@ -60,41 +60,43 @@
       backdrop-filter: blur(10px);
       transition: 0.2s;
     }
-
     .nav-btn:active { background: var(--accent); }
 
-    /* Let the wrapper shrink-wrap the select instead of forcing a fixed width */
-    .selector-wrapper {
-      pointer-events: auto;
+    /* Hidden native selects — used only to trigger iOS native picker */
+    .native-select {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      cursor: pointer;
+      font-size: 16px; /* prevents iOS zoom */
+    }
+
+    /* Visible styled button that shows the current value */
+    .picker-btn {
+      position: relative;
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 6px;
       backdrop-filter: blur(10px);
+      width: 58px;
+      height: 38px;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 38px;
-      padding: 0 10px;
+      cursor: pointer;
+      pointer-events: auto;
     }
 
-    .selector-wrapper select {
-      background: transparent;
-      border: none;
-      color: var(--accent);
+    .picker-label {
       font-family: 'Tenor Sans', sans-serif;
       font-size: 14px;
       font-weight: bold;
-      cursor: pointer;
-      /* Use default appearance on iOS so the native picker renders correctly */
-      appearance: auto;
-      -webkit-appearance: auto;
-      outline: none;
-    }
-
-    .selector-wrapper select option {
-      background: #1a1a1a;
-      color: var(--text);
-      font-size: 16px;
+      color: var(--accent);
+      pointer-events: none;
+      user-select: none;
     }
 
     #reader-view {
@@ -127,8 +129,10 @@
   </div>
 
   <div class="btn-group">
-    <div class="selector-wrapper">
-      <select id="font-size-select" onchange="setFontSize(this.value)" aria-label="Font size">
+    <!-- Font size picker -->
+    <div class="picker-btn">
+      <span class="picker-label" id="font-label">21</span>
+      <select class="native-select" id="font-size-select" onchange="setFontSize(this.value)">
         <option value="16">16</option>
         <option value="18">18</option>
         <option value="21" selected>21</option>
@@ -137,8 +141,10 @@
       </select>
     </div>
 
-    <div class="selector-wrapper">
-      <select id="page-select" onchange="jumpToPage(this.value)" aria-label="Page number"></select>
+    <!-- Page picker -->
+    <div class="picker-btn">
+      <span class="picker-label" id="page-label">1</span>
+      <select class="native-select" id="page-select" onchange="jumpToPage(this.value)"></select>
     </div>
   </div>
 </div>
@@ -153,6 +159,7 @@
 
   function setFontSize(size) {
     document.body.style.fontSize = size + 'px';
+    document.getElementById('font-label').textContent = size;
   }
 
   async function loadBook() {
@@ -222,14 +229,15 @@
   function render() {
     const container = document.getElementById('content-container');
     const select = document.getElementById('page-select');
-    
+
     container.innerHTML = pages[currentIndex]
-      .split(/\n\s*\n/) 
+      .split(/\n\s*\n/)
       .filter(p => p.trim() !== '')
       .map(p => `<p>${p.replace(/\n/g, ' ')}</p>`)
       .join('');
 
     select.value = currentIndex;
+    document.getElementById('page-label').textContent = currentIndex + 1;
     document.getElementById('reader-view').scrollTop = 0;
     window.history.replaceState(null, null, `#${currentIndex + 1}`);
   }
