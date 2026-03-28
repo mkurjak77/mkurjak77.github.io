@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#080808">
   <title>Reader</title>
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&family=Tenor+Sans&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Tenor+Sans&family=Lora:ital,wght@0,400;1,400&family=Merriweather:ital,wght@0,300;1,300&family=Crimson+Text:ital,wght@0,400;1,400&family=Source+Serif+4:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
   
   <style>
     :root {
@@ -14,6 +14,8 @@
       --accent: #a08060;
       --border: rgba(255, 255, 255, 0.1);
       --panel: rgba(25, 25, 25, 0.9);
+      --font-family: 'EB Garamond', serif;
+      --font-size: 21px;
     }
     
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -21,8 +23,8 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'EB Garamond', serif;
-      font-size: 21px;
+      font-family: var(--font-family);
+      font-size: var(--font-size);
       line-height: 1.6;
       height: 100vh;
       overflow: hidden;
@@ -35,7 +37,7 @@
       top: env(safe-area-inset-top, 10px);
       left: 0;
       right: 0;
-      padding: 10px 20px;
+      padding: 10px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -45,8 +47,15 @@
 
     .btn-group {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       pointer-events: auto;
+    }
+
+    .controls-group {
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+      align-items: center;
     }
 
     .nav-btn {
@@ -59,12 +68,13 @@
       cursor: pointer;
       backdrop-filter: blur(10px);
       transition: 0.2s;
+      flex-shrink: 0;
     }
 
     .nav-btn:active { background: var(--accent); }
 
+    /* Shared wrapper style for all dropdowns */
     .selector-wrapper {
-      pointer-events: auto;
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 6px;
@@ -72,33 +82,42 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 65px;
       height: 38px;
+      overflow: hidden;
+      flex-shrink: 0;
     }
 
-    #page-select {
+    .page-wrapper    { width: 58px; }
+    .book-wrapper    { width: 80px; }
+    .font-size-wrapper { width: 56px; }
+    .font-type-wrapper { width: 76px; }
+
+    /* Base select style — keep native appearance for mobile sheet support */
+    .nav-select {
       background: transparent;
       border: none;
       color: var(--accent);
       font-family: 'Tenor Sans', sans-serif;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: bold;
+      /* Fill the wrapper completely so the tap target is the whole box */
       width: 100%;
       height: 100%;
       cursor: pointer;
-      appearance: none;
-      -webkit-appearance: none;
+      /* Keep native appearance — critical for iOS/Android bottom sheet */
+      appearance: auto;
+      -webkit-appearance: auto;
       outline: none;
+      /* Center the selected text */
       text-align: center;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      text-align-last: center;
+      padding: 0 2px;
     }
 
-    #page-select option {
+    .nav-select option {
       background: #1a1a1a;
       color: var(--text);
+      font-family: sans-serif;
     }
 
     #reader-view {
@@ -113,6 +132,8 @@
     #content-container {
       max-width: 650px;
       width: 100%;
+      font-family: var(--font-family);
+      font-size: var(--font-size);
       animation: fadeIn 0.4s ease;
     }
 
@@ -125,13 +146,46 @@
 <body>
 
 <div class="top-nav">
+  <!-- Left: prev / next -->
   <div class="btn-group">
     <button class="nav-btn" onclick="prev()" aria-label="Previous"></button>
     <button class="nav-btn" onclick="next()" aria-label="Next"></button>
   </div>
-  
-  <div class="selector-wrapper">
-    <select id="page-select" onchange="jumpToPage(this.value)"></select>
+
+  <!-- Right: font type | font size | book | page# -->
+  <div class="controls-group">
+
+    <div class="selector-wrapper font-type-wrapper">
+      <select id="font-select" class="nav-select" onchange="setFont(this.value)" aria-label="Font type">
+        <option value="'EB Garamond', serif">Garamond</option>
+        <option value="'Lora', serif">Lora</option>
+        <option value="'Merriweather', serif">Merriwr.</option>
+        <option value="'Crimson Text', serif">Crimson</option>
+        <option value="'Source Serif 4', serif">Src Serif</option>
+      </select>
+    </div>
+
+    <div class="selector-wrapper font-size-wrapper">
+      <select id="size-select" class="nav-select" onchange="setSize(this.value)" aria-label="Font size">
+        <option value="16px">16</option>
+        <option value="18px">18</option>
+        <option value="21px" selected>21</option>
+        <option value="24px">24</option>
+        <option value="28px">28</option>
+      </select>
+    </div>
+
+    <div class="selector-wrapper book-wrapper">
+      <select id="book-select" class="nav-select" onchange="loadBook(this.value)" aria-label="Select book">
+        <option value="book.txt">Book 1</option>
+        <!-- Add more: <option value="book2.txt">Book 2</option> -->
+      </select>
+    </div>
+
+    <div class="selector-wrapper page-wrapper">
+      <select id="page-select" class="nav-select" onchange="jumpToPage(this.value)" aria-label="Page number"></select>
+    </div>
+
   </div>
 </div>
 
@@ -143,15 +197,16 @@
   let pages = [];
   let currentIndex = 0;
 
-  async function loadBook() {
+  async function loadBook(filename) {
+    filename = filename || 'book.txt';
     try {
-      const response = await fetch('book.txt');
-      if (!response.ok) throw new Error('Could not load book.txt');
+      const response = await fetch(filename);
+      if (!response.ok) throw new Error('Could not load ' + filename);
       const fullBookText = await response.text();
       paginate(fullBookText);
     } catch (err) {
       document.getElementById('content-container').innerHTML =
-        '<p style="color:#a08060;">Error: could not load book.txt — make sure it is in the same folder as index.html.</p>';
+        '<p style="color:#a08060;">Error: could not load ' + filename + ' — make sure it is in the same folder as index.html.</p>';
       console.error(err);
     }
   }
@@ -164,11 +219,9 @@
 
     while (start < totalChars) {
       let end = start + chunkTarget;
-
       if (end < totalChars) {
         const searchRange = fullBookText.slice(end, end + 1000);
         const match = searchRange.match(/[.!?]/);
-
         if (match) {
           end = end + match.index + 1;
         } else {
@@ -176,7 +229,6 @@
           if (nextSpace !== -1) end = nextSpace;
         }
       }
-
       pages.push(fullBookText.slice(start, end).trim());
       start = end;
     }
@@ -199,20 +251,17 @@
   function loadFromHash() {
     const hash = window.location.hash.replace('#', '');
     const pageNum = parseInt(hash);
-    if (!isNaN(pageNum) && pageNum > 0 && pageNum <= pages.length) {
-      currentIndex = pageNum - 1;
-    } else {
-      currentIndex = 0;
-    }
+    currentIndex = (!isNaN(pageNum) && pageNum > 0 && pageNum <= pages.length)
+      ? pageNum - 1 : 0;
     render();
   }
 
   function render() {
     const container = document.getElementById('content-container');
     const select = document.getElementById('page-select');
-    
+
     container.innerHTML = pages[currentIndex]
-      .split(/\n\s*\n/) 
+      .split(/\n\s*\n/)
       .filter(p => p.trim() !== '')
       .map(p => `<p>${p.replace(/\n/g, ' ')}</p>`)
       .join('');
@@ -222,22 +271,27 @@
     window.history.replaceState(null, null, `#${currentIndex + 1}`);
   }
 
-  function jumpToPage(val) {
-    currentIndex = parseInt(val);
-    render();
-  }
-
+  function jumpToPage(val) { currentIndex = parseInt(val); render(); }
   function next() { if (currentIndex < pages.length - 1) { currentIndex++; render(); } }
   function prev() { if (currentIndex > 0) { currentIndex--; render(); } }
 
+  function setFont(value) {
+    document.documentElement.style.setProperty('--font-family', value);
+    document.getElementById('content-container').style.fontFamily = value;
+  }
+
+  function setSize(value) {
+    document.documentElement.style.setProperty('--font-size', value);
+    document.getElementById('content-container').style.fontSize = value;
+  }
+
   document.addEventListener('keydown', e => {
-    if (e.key === "ArrowRight") next();
-    if (e.key === "ArrowLeft") prev();
+    if (e.key === 'ArrowRight') next();
+    if (e.key === 'ArrowLeft') prev();
   });
 
   window.addEventListener('hashchange', loadFromHash);
-
-  loadBook();
+  loadBook('book.txt');
 </script>
 
 </body>
