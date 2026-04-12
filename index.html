@@ -79,7 +79,6 @@
       border: 1px solid var(--border);
       border-radius: 6px;
       backdrop-filter: blur(10px);
-      width: 58px;
       height: 38px;
       display: flex;
       align-items: center;
@@ -88,6 +87,9 @@
       pointer-events: auto;
     }
 
+    .picker-btn.narrow { width: 58px; }
+    .picker-btn.wide   { padding: 0 14px; max-width: 160px; }
+
     .picker-label {
       font-family: 'Tenor Sans', sans-serif;
       font-size: 14px;
@@ -95,6 +97,9 @@
       color: var(--accent);
       pointer-events: none;
       user-select: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     #reader-view {
@@ -121,31 +126,39 @@
 <body>
 
 <div class="top-nav">
+  <!-- Left: prev / next -->
   <div class="btn-group">
     <button class="nav-btn" onclick="prev()" aria-label="Previous"></button>
     <button class="nav-btn" onclick="next()" aria-label="Next"></button>
   </div>
 
+  <!-- Right: book picker / font size / page -->
   <div class="btn-group">
-    <!-- Font size picker -->
-    <div class="picker-btn">
+
+    <div class="picker-btn wide">
+      <span class="picker-label" id="book-label">—</span>
+      <select class="native-select notranslate" id="book-select"
+              translate="no"
+              onchange="loadBook(parseInt(this.value))">
+      </select>
+    </div>
+
+    <div class="picker-btn narrow">
       <span class="picker-label" id="font-label">21</span>
       <select class="native-select notranslate" id="font-size-select"
               translate="no"
               onchange="setFontSize(this.value)">
-        <!-- options injected by JS to avoid Migaku mangling them -->
       </select>
     </div>
 
-    <!-- Page picker -->
-    <div class="picker-btn">
+    <div class="picker-btn narrow">
       <span class="picker-label" id="page-label">1</span>
       <select class="native-select notranslate" id="page-select"
               translate="no"
               onchange="jumpToPage(this.value)">
-        <!-- options injected by JS to avoid Migaku mangling them -->
       </select>
     </div>
+
   </div>
 </div>
 
@@ -154,22 +167,29 @@
 </main>
 
 <script>
-  let pages = [];
-  let currentIndex = 0;
+  // ── BOOK LIST ──────────────────────────────────────────────
+  // Add or rename entries here. 'file' must exist in your repo.
+  const BOOKS = [
+    { label: 'Book One',   file: 'book.txt'  },
+    { label: 'Book Two',   file: 'book2.txt' },
+    { label: 'Book Three', file: 'book3.txt' },
+  ];
+  // ──────────────────────────────────────────────────────────
 
-  // Build an option using only DOM properties (no innerHTML) so Migaku
-  // never gets a chance to rewrite the text node.
+  let pages        = [];
+  let currentIndex = 0;
+  let currentBook  = 0;
+
   function makeOption(value, label) {
     const opt = document.createElement('option');
     opt.value = value;
     opt.setAttribute('translate', 'no');
     opt.className = 'notranslate';
-    // Use the data attribute as the source of truth and set textContent
-    // after creation so Migaku's mutation observer fires on an already-complete node.
     opt.textContent = String(label);
     return opt;
   }
 
+  // Font size picker
   function setupFontSizes() {
     const select = document.getElementById('font-size-select');
     select.innerHTML = '';
@@ -185,70 +205,72 @@
     document.getElementById('font-label').textContent = size;
   }
 
-  async function loadBook() {
+  // Book picker
+  function setupBooks() {
+    const select = document.getElementById('book-select');
+    select.innerHTML = '';
+    BOOKS.forEach((b, i) => select.appendChild(makeOption(i, b.label)));
+  }
+
+  async function loadBook(bookIndex) {
+    currentBook = bookIndex ?? 0;
+    const book  = BOOKS[currentBook];
+
+    document.getElementById('book-label').textContent      = book.label;
+    document.getElementById('book-select').value           = currentBook;
+    document.getElementById('content-container').innerHTML = '';
+
     try {
-      const response = await fetch('book.txt');
-      if (!response.ok) throw new Error('Could not load book.txt');
-      const fullBookText = await response.text();
-      paginate(fullBookText);
+      const response = await fetch(book.file);
+      if (!response.ok) throw new Error('File not found: ' + book.file);
+      paginate(await response.text());
     } catch (err) {
       document.getElementById('content-container').innerHTML =
-        '<p style="color:#a08060;">Error: could not load book.txt — make sure it is in the same folder as index.html.</p>';
+        `<p style="color:#a08060;">Error: could not load "${book.file}".<br>
+         Make sure the file exists in your GitHub Pages repo.</p>`;
       console.error(err);
     }
   }
 
-  function paginate(fullBookText) {
+  // Pagination
+  function paginate(text) {
     pages = [];
-    const totalChars = fullBookText.length;
+    const totalChars  = text.length;
     const chunkTarget = Math.ceil(totalChars / 100);
     let start = 0;
 
     while (start < totalChars) {
       let end = start + chunkTarget;
-
       if (end < totalChars) {
-        const searchRange = fullBookText.slice(end, end + 1000);
+        const searchRange = text.slice(end, end + 1000);
         const match = searchRange.match(/[.!?]/);
-
         if (match) {
           end = end + match.index + 1;
         } else {
-          const nextSpace = fullBookText.indexOf(' ', end);
+          const nextSpace = text.indexOf(' ', end);
           if (nextSpace !== -1) end = nextSpace;
         }
       }
-
-      pages.push(fullBookText.slice(start, end).trim());
+      pages.push(text.slice(start, end).trim());
       start = end;
     }
 
-    setupDropdown();
-    loadFromHash();
+    setupPageDropdown();
+    currentIndex = 0;
+    render();
   }
 
-  function setupDropdown() {
+  function setupPageDropdown() {
     const select = document.getElementById('page-select');
     select.innerHTML = '';
-    pages.forEach((_, index) => {
-      select.appendChild(makeOption(index, index + 1));
-    });
-  }
-
-  function loadFromHash() {
-    const hash = window.location.hash.replace('#', '');
-    const pageNum = parseInt(hash);
-    if (!isNaN(pageNum) && pageNum > 0 && pageNum <= pages.length) {
-      currentIndex = pageNum - 1;
-    } else {
-      currentIndex = 0;
-    }
-    render();
+    pages.forEach((_, i) => select.appendChild(makeOption(i, i + 1)));
   }
 
   function render() {
     const container = document.getElementById('content-container');
-    const select = document.getElementById('page-select');
+    container.style.animation = 'none';
+    container.offsetHeight; // force reflow to re-trigger animation
+    container.style.animation = '';
 
     container.innerHTML = pages[currentIndex]
       .split(/\n\s*\n/)
@@ -256,29 +278,25 @@
       .map(p => `<p>${p.replace(/\n/g, ' ')}</p>`)
       .join('');
 
-    select.value = currentIndex;
+    document.getElementById('page-select').value      = currentIndex;
     document.getElementById('page-label').textContent = currentIndex + 1;
-    document.getElementById('reader-view').scrollTop = 0;
+    document.getElementById('reader-view').scrollTop  = 0;
     window.history.replaceState(null, null, `#${currentIndex + 1}`);
   }
 
-  function jumpToPage(val) {
-    currentIndex = parseInt(val);
-    render();
-  }
-
+  function jumpToPage(val) { currentIndex = parseInt(val); render(); }
   function next() { if (currentIndex < pages.length - 1) { currentIndex++; render(); } }
   function prev() { if (currentIndex > 0) { currentIndex--; render(); } }
 
   document.addEventListener('keydown', e => {
-    if (e.key === "ArrowRight") next();
-    if (e.key === "ArrowLeft") prev();
+    if (e.key === 'ArrowRight') next();
+    if (e.key === 'ArrowLeft')  prev();
   });
 
-  window.addEventListener('hashchange', loadFromHash);
-
+  // Init
   setupFontSizes();
-  loadBook();
+  setupBooks();
+  loadBook(0);
 </script>
 
 </body>
